@@ -1,0 +1,213 @@
+/* src/components/KnowledgeGraph.css (Estilos Completos) */
+
+.graph-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #111; /* Un fondo oscuro para el grafo */
+}
+
+/* --- Barra de Búsqueda --- */
+.search-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+  width: 300px;
+}
+
+.search-container input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  background-color: #2a2a2e;
+  color: #f0f0f0;
+  box-sizing: border-box; /* Asegura que el padding no aumente el tamaño */
+}
+
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin-top: 5px;
+  background-color: #3a3a3e;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-results li {
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid #444;
+}
+
+.search-results li:last-child {
+  border-bottom: none;
+}
+
+.search-results li:hover {
+  background-color: #00aaff;
+  color: #2a2a2e;
+}
+
+
+/* --- Panel de Explicación --- */
+.explanation-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 400px;
+  max-width: 90vw; /* Asegura que no sea demasiado grande en pantallas pequeñas */
+  height: 100%;
+  background-color: #2a2a2e;
+  color: #f0f0f0;
+  padding: 20px;
+  box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
+  z-index: 10;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.explanation-panel h2 {
+  margin-top: 20px;
+  color: #00aaff;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #555;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 30px;
+  text-align: center;
+}
+
+.explanation-controls {
+  margin: 20px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #444;
+}
+
+.explanation-controls button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border: 1px solid #00aaff;
+  background-color: transparent;
+  color: #00aaff;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.explanation-controls button:hover {
+  background-color: #00aaff;
+  color: #2a2a2e;
+}
+
+.explanation-content {
+  flex-grow: 1;
+  background-color: #1e1e1e;
+  padding: 15px;
+  border-radius: 5px;
+  line-height: 1.6; /* Mejora la legibilidad */
+}
+.explanation-content h1, 
+.explanation-content h2,
+.explanation-content h3 {
+    border-bottom: 1px solid #555;
+    padding-bottom: 5px;
+    color: #00d1ff;
+}
+.explanation-content code {
+    background: #333;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+.explanation-content pre {
+    background: #333;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+}
+
+/* src/components/KnowledgeGraph.css (Nuevos estilos para filtros) */
+
+.ui-controls {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Espacio entre la búsqueda y los filtros */
+}
+
+/* Ajustamos el search-container para que encaje en el nuevo contenedor */
+.search-container {
+    position: static; /* Ya no necesita ser absoluto */
+    width: 300px;
+}
+
+.filter-container {
+  width: 300px;
+  background-color: #2a2a2e;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: 1px solid #555;
+}
+
+.filter-container h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #f0f0f0;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.filter-item label {
+  margin-left: 8px;
+  cursor: pointer;
+  color: #ccc;
+}
+.filter-item input {
+  cursor: pointer;
+}
+.regenerate-btn {
+  margin-top: 15px;
+  padding: 6px 12px;
+  width: 100%;
+  border: 1px solid #777;
+  background-color: #333;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.regenerate-btn:hover:not(:disabled) {
+  background-color: #444;
+  color: #fff;
+}
+
+.regenerate-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

@@ -1,0 +1,70 @@
+# ===================================================================
+# === .gitignore Unificado para Socratic Cortex (Proyecto AIWEB) ===
+# ===================================================================
+
+# Archivos de entorno y credenciales
+# ¡NUNCA SUBIR! Contienen claves de API, contraseñas y secretos.
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+*.local
+
+# Dependencias de Node.js
+# Se instalan con 'npm install' y son específicas de cada máquina.
+# El '/**/' asegura que ignore node_modules en cualquier subdirectorio.
+**/node_modules
+
+# Entornos virtuales de Python
+# Se recrean con un archivo requirements.txt.
+/aiw
+/venv
+/.venv
+/env
+/.env
+/ENV/
+/venv/
+/VENV/
+
+# Archivos compilados y de build
+# Se generan para producción y no se guardan en el control de versiones.
+**/dist
+**/dist-ssr
+**/build
+.next/
+out/
+.vite
+
+# Archivos de log
+# Contienen información de ejecución que no es parte del código fuente.
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Archivos de caché y compilados de Python
+__pycache__/
+*.pyc
+
+# Archivos de configuración del editor de código
+# Son preferencias personales y no deben ser impuestas a otros colaboradores.
+.vscode/*
+# Excepción: a veces es útil compartir las extensiones recomendadas.
+!.vscode/extensions.json
+.idea/
+
+# Archivos de proyecto específicos de Visual Studio
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
