@@ -1,4 +1,4 @@
-// src/api/graphRoutes.js (VERSIÓN FINAL Y COMPLETA)
+// src/api/graphRoutes.js (VERSIÓN CORREGIDA PARA EXPRESS 5)
 
 const express = require('express');
 const router = express.Router();
@@ -14,7 +14,6 @@ const openrouter = new OpenAI({
         "X-Title": "Socratic Cortex",
     },
 });
-
 
 // ===================================================
 // === ENDPOINT 1: "EL CARTÓGRAFO" (INGESTA)      ===
@@ -34,7 +33,14 @@ router.post('/ingest', async (req, res) => {
             
             RESPONDE ÚNICAMENTE CON EL OBJETO JSON VÁLIDO. NO INCLUYAS TEXTO ADICIONAL.`;
 
-        const aiResponse = await openrouter.chat.completions.create({ model: "deepseek/deepseek-r1-0528-qwen3-8b:free", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: text }] });
+        const aiResponse = await openrouter.chat.completions.create({ 
+            model: "deepseek/deepseek-r1-0528-qwen3-8b:free", 
+            messages: [
+                { role: "system", content: systemPrompt }, 
+                { role: "user", content: text }
+            ] 
+        });
+        
         const resultJson = JSON.parse(aiResponse.choices[0].message.content);
         
         const { primaryNode, edges } = resultJson;
@@ -58,7 +64,6 @@ router.post('/ingest', async (req, res) => {
     }
 });
 
-
 // ===================================================
 // === ENDPOINT 2: OBTENER GRAFO COMPLETO         ===
 // ===================================================
@@ -80,21 +85,31 @@ router.get('/', async (req, res) => {
     }
 });
 
-
 // ===================================================
 // === ENDPOINT 3: "EL PROFESOR" (EXPLICACIÓN)    ===
+// === RUTA CORREGIDA PARA EXPRESS 5              ===
 // ===================================================
-router.post('/nodes/:id/explain', async (req, res) => {
+router.post('/explain/:nodeId', async (req, res) => {  // CAMBIADO: /nodes/:id/explain → /explain/:nodeId
     const session = driver.session();
-    const { id } = req.params;
+    const { nodeId } = req.params;  // CAMBIADO: id → nodeId
     const { level } = req.body;
-    if (!level) return res.status(400).json({ error: 'El campo "level" es requerido.' });
+    
+    if (!level) {
+        return res.status(400).json({ error: 'El campo "level" es requerido.' });
+    }
 
     try {
-        const contextQuery = `MATCH (n:KnowledgeNode {id: $id}) OPTIONAL MATCH (n)-[r:RELATES]-(m:KnowledgeNode) RETURN n, collect({relation: r, neighbor: m}) as context`;
-        const result = await session.run(contextQuery, { id });
+        const contextQuery = `
+            MATCH (n:KnowledgeNode {id: $nodeId}) 
+            OPTIONAL MATCH (n)-[r:RELATES]-(m:KnowledgeNode) 
+            RETURN n, collect({relation: r, neighbor: m}) as context
+        `;
+        
+        const result = await session.run(contextQuery, { nodeId });
 
-        if (result.records.length === 0) return res.status(404).json({ error: 'Nodo no encontrado.' });
+        if (result.records.length === 0) {
+            return res.status(404).json({ error: 'Nodo no encontrado.' });
+        }
         
         const record = result.records[0];
         const mainNode = record.get('n').properties;
@@ -103,7 +118,9 @@ router.post('/nodes/:id/explain', async (req, res) => {
         let contextSummary = 'No tiene relaciones conocidas.';
         // Asegurarse de que el contexto no esté vacío y el primer elemento tenga una relación
         if (contextList && contextList.length > 0 && contextList[0].relation) {
-             contextSummary = contextList.map(item => `- Tiene una relación '${item.relation.properties.type}' con '${item.neighbor.properties.label}'`).join('\n');
+             contextSummary = contextList.map(item => 
+                `- Tiene una relación '${item.relation.properties.type}' con '${item.neighbor.properties.label}'`
+             ).join('\n');
         }
 
         const systemPrompt = `
@@ -118,7 +135,14 @@ router.post('/nodes/:id/explain', async (req, res) => {
             - Si el nivel es "expert", usa terminología técnica.
             - No digas que eres una IA.`;
 
-        const aiResponse = await openrouter.chat.completions.create({ model: "deepseek/deepseek-r1-0528-qwen3-8b:free", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Explícame "${mainNode.label}".` }] });
+        const aiResponse = await openrouter.chat.completions.create({ 
+            model: "deepseek/deepseek-r1-0528-qwen3-8b:free", 
+            messages: [
+                { role: "system", content: systemPrompt }, 
+                { role: "user", content: `Explícame "${mainNode.label}".` }
+            ] 
+        });
+        
         const explanation = aiResponse.choices[0].message.content;
         
         res.json({ explanation });
@@ -129,6 +153,5 @@ router.post('/nodes/:id/explain', async (req, res) => {
         await session.close();
     }
 });
-
 
 module.exports = router;
