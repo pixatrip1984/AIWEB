@@ -1,4 +1,5 @@
-/* src/components/KnowledgeGraph.css (VERSIÓN FINAL COMPLETA CON NORMALIZACIÓN) */
+/* socratic-cortex-frontend/src/components/KnowledgeGraph.css */
+/* VERSIÓN ACTUALIZADA CON SOPORTE PARA PANELES DE FASE 1.2 */
 
 /* ===================================================================
    CONTENEDOR PRINCIPAL DEL GRAFO
@@ -13,7 +14,7 @@
 }
 
 /* ===================================================================
-   CONTROLES DE INTERFAZ (BÚSQUEDA Y FILTROS)
+   CONTROLES DE INTERFAZ (LADO IZQUIERDO)
    =================================================================== */
 .ui-controls {
   position: absolute;
@@ -25,6 +26,37 @@
   gap: 20px;
   max-height: calc(100vh - 40px);
   overflow-y: auto;
+}
+
+/* --- CONTROLES DE PANELES (NUEVO) --- */
+.panel-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.panel-toggle {
+  padding: 8px 12px;
+  background-color: #2a2a2e;
+  color: #ccc;
+  border: 1px solid #555;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.panel-toggle:hover {
+  background-color: #3a3a3e;
+  border-color: #666;
+  color: #f0f0f0;
+}
+
+.panel-toggle.active {
+  background-color: #00d1ff;
+  color: #1a1a1e;
+  border-color: #00d1ff;
 }
 
 /* --- BARRA DE BÚSQUEDA --- */
@@ -108,18 +140,19 @@
   width: 300px;
   background-color: #2a2a2e;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #555;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  color: #f0f0f0;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .filter-container h4 {
   margin: 0 0 15px 0;
-  color: #f0f0f0;
+  color: #00d1ff;
   font-size: 16px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   border-bottom: 2px solid #00d1ff;
   padding-bottom: 8px;
 }
@@ -127,79 +160,88 @@
 .filter-item {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  padding: 8px 0;
-  transition: all 0.2s ease;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
 }
 
 .filter-item:hover {
-  background-color: rgba(0, 209, 255, 0.1);
-  border-radius: 4px;
-  padding-left: 8px;
+  background-color: #3a3a3e;
 }
 
-.filter-item input {
-  cursor: pointer;
-  width: 16px;
-  height: 16px;
+.filter-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
   accent-color: #00d1ff;
+  cursor: pointer;
 }
 
 .filter-item label {
-  margin-left: 12px;
   cursor: pointer;
-  color: #ccc;
+  font-size: 14px;
+  color: #f0f0f0;
   font-weight: 500;
-  transition: color 0.2s ease;
   flex: 1;
 }
 
-.filter-item input:checked + label {
-  color: #00d1ff;
-  font-weight: 600;
+.filter-item input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.filter-item:hover label {
-  color: #fff;
+.filter-item label:has(input:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* --- BOTÓN DE NORMALIZACIÓN --- */
 .normalization-btn {
   width: 100%;
+  padding: 12px 16px;
   margin-top: 20px;
-  padding: 14px 20px;
-  background: linear-gradient(135deg, #00d1ff, #0099cc);
-  color: white;
+  background-color: #00d1ff;
+  color: #1a1a1e;
   border: none;
   border-radius: 8px;
-  cursor: pointer;
-  font-weight: 700;
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  box-shadow: 0 4px 15px rgba(0, 209, 255, 0.2);
 }
 
 .normalization-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #00b8e6, #0088bb);
+  background-color: #00b8e6;
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 209, 255, 0.4);
-}
-
-.normalization-btn:active {
-  transform: translateY(0);
+  box-shadow: 0 4px 12px rgba(0, 209, 255, 0.3);
 }
 
 .normalization-btn:disabled {
-  opacity: 0.5;
+  background-color: #666;
+  color: #999;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
 /* ===================================================================
-   INDICADORES DE CARGA
+   PANELES EXTENDIDOS (LADO DERECHO)
+   =================================================================== */
+.enhanced-panels {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}
+
+/* ===================================================================
+   INDICADOR DE CARGA
    =================================================================== */
 .loading-overlay {
   position: absolute;
@@ -207,48 +249,135 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(17, 17, 17, 0.95);
+  background-color: rgba(17, 17, 17, 0.8);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 50;
-  backdrop-filter: blur(5px);
+  z-index: 100;
 }
 
 .loading-content {
   text-align: center;
   color: #f0f0f0;
-  padding: 40px;
-  background: rgba(42, 42, 46, 0.8);
-  border-radius: 12px;
-  border: 1px solid #555;
 }
 
-.loading-content .spinner {
-  width: 60px;
-  height: 60px;
+.loading-content p {
+  margin: 15px 0 0 0;
+  font-size: 16px;
+  color: #00d1ff;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
   border: 4px solid #333;
   border-top: 4px solid #00d1ff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin: 0 auto 20px;
 }
 
-.loading-content p {
-  font-size: 18px;
-  margin: 0;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ===================================================================
+   PANEL DE EXPLICACIÓN (NODO SELECCIONADO)
+   =================================================================== */
+.explanation-panel {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  width: 400px;
+  max-height: 50vh;
+  background-color: #2a2a2e;
+  border-radius: 12px;
+  border: 1px solid #555;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  color: #f0f0f0;
+  overflow: hidden;
+  z-index: 30;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #555;
+  color: #f0f0f0;
+}
+
+.explanation-panel h2 {
+  margin: 0 40px 10px 20px;
+  padding: 20px 0 0 0;
+  color: #00d1ff;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.explanation-panel p {
+  margin: 0 20px 15px 20px;
+  line-height: 1.5;
+}
+
+.explanation-controls {
+  padding: 0 20px 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.explanation-controls span {
+  color: #ccc;
+  font-size: 14px;
   font-weight: 500;
+}
+
+.explanation-controls button {
+  padding: 6px 12px;
+  background-color: #444;
+  color: #f0f0f0;
+  border: 1px solid #666;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.explanation-controls button:hover:not(:disabled) {
+  background-color: #555;
+  border-color: #00d1ff;
+}
+
+.explanation-controls button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.explanation-content {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0 20px 20px 20px;
 }
 
 .loading-explanation {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px;
-  color: #ccc;
-  background: rgba(42, 42, 46, 0.5);
-  border-radius: 6px;
-  margin: 10px 0;
+  gap: 10px;
+  color: #00d1ff;
 }
 
 .spinner-small {
@@ -258,296 +387,114 @@
   border-top: 2px solid #00d1ff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  flex-shrink: 0;
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* ===================================================================
-   PANEL DE EXPLICACIÓN
-   =================================================================== */
-.explanation-panel {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 450px;
-  max-width: 90vw;
-  height: 100%;
-  background-color: #2a2a2e;
-  color: #f0f0f0;
-  padding: 25px;
-  box-shadow: -8px 0 25px rgba(0, 0, 0, 0.6);
-  overflow-y: auto;
-  z-index: 30;
-  font-family: inherit;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  border-left: 3px solid #00d1ff;
-}
-
-.explanation-panel h2 {
-  margin: 25px 0 15px 0;
-  color: #00d1ff;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.explanation-panel p {
-  margin: 10px 0;
-  line-height: 1.6;
-  color: #e0e0e0;
-}
-
-.explanation-panel em {
-  color: #00d1ff;
-  font-style: normal;
-  font-weight: 600;
-}
-
-.close-btn {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: #555;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 35px;
-  text-align: center;
-  transition: all 0.3s ease;
-  z-index: 31;
-}
-
-.close-btn:hover {
-  background: #ff4444;
-  transform: scale(1.1);
-  box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
-}
-
-.explanation-controls {
-  margin: 25px 0;
-  padding: 20px 0;
-  border-top: 1px solid #444;
-  border-bottom: 1px solid #444;
-}
-
-.explanation-controls span {
-  display: block;
-  margin-bottom: 12px;
-  color: #ccc;
-  font-weight: 600;
+.loading-explanation p {
+  margin: 0;
   font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
-.explanation-controls button {
-  margin-right: 12px;
-  margin-bottom: 8px;
-  padding: 10px 16px;
-  border: 2px solid #00aaff;
-  background-color: transparent;
-  color: #00aaff;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.explanation-controls button:hover:not(:disabled) {
-  background-color: #00aaff;
-  color: #2a2a2e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 170, 255, 0.3);
-}
-
-.explanation-controls button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.explanation-content {
-  flex-grow: 1;
-  background-color: #1e1e1e;
-  padding: 20px;
-  border-radius: 8px;
-  line-height: 1.7;
-  border: 1px solid #333;
-}
-
-.explanation-content h1, 
-.explanation-content h2,
-.explanation-content h3 {
-  border-bottom: 2px solid #555;
-  padding-bottom: 8px;
-  margin-top: 25px;
-  margin-bottom: 15px;
-  color: #00d1ff;
-  font-weight: 600;
-}
-
-.explanation-content h1 { font-size: 24px; }
-.explanation-content h2 { font-size: 20px; }
-.explanation-content h3 { font-size: 18px; }
-
-.explanation-content p {
-  margin: 15px 0;
-  color: #e0e0e0;
-}
-
-.explanation-content code {
-  background: #333;
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  color: #00d1ff;
-  border: 1px solid #555;
-}
-
-.explanation-content pre {
-  background: #333;
-  padding: 15px;
-  border-radius: 6px;
-  overflow-x: auto;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  border: 1px solid #555;
-  line-height: 1.4;
-}
-
-.explanation-content ul,
-.explanation-content ol {
-  padding-left: 25px;
-  margin: 15px 0;
-}
-
-.explanation-content li {
-  margin: 8px 0;
-  color: #e0e0e0;
-}
-
-.explanation-content blockquote {
-  border-left: 4px solid #00d1ff;
-  margin: 20px 0;
-  padding: 15px 20px;
-  background: rgba(0, 209, 255, 0.1);
-  border-radius: 0 6px 6px 0;
-  font-style: italic;
-}
-
-/* --- BOTÓN DE REGENERAR --- */
 .regenerate-btn {
-  margin-top: 20px;
-  padding: 12px 18px;
-  background: #333;
-  color: #00d1ff;
-  border: 2px solid #555;
+  margin-top: 15px;
+  padding: 8px 12px;
+  background-color: #00d1ff;
+  color: #1a1a1e;
+  border: none;
   border-radius: 6px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  font-size: 12px;
   font-weight: 600;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
 }
 
 .regenerate-btn:hover:not(:disabled) {
-  background: #444;
-  border-color: #00d1ff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 209, 255, 0.2);
+  background-color: #00b8e6;
 }
 
 .regenerate-btn:disabled {
+  background-color: #666;
+  color: #999;
   cursor: not-allowed;
-  opacity: 0.5;
-  transform: none;
 }
 
 /* ===================================================================
-   DISEÑO RESPONSIVO
+   SCROLLBARS PERSONALIZADAS
    =================================================================== */
-@media (max-width: 1200px) {
-  .explanation-panel {
-    width: 400px;
-  }
+.ui-controls::-webkit-scrollbar,
+.enhanced-panels::-webkit-scrollbar,
+.filter-container::-webkit-scrollbar,
+.explanation-content::-webkit-scrollbar {
+  width: 6px;
 }
 
-@media (max-width: 992px) {
-  .explanation-panel {
-    width: 350px;
+.ui-controls::-webkit-scrollbar-track,
+.enhanced-panels::-webkit-scrollbar-track,
+.filter-container::-webkit-scrollbar-track,
+.explanation-content::-webkit-scrollbar-track {
+  background: #2a2a2e;
+}
+
+.ui-controls::-webkit-scrollbar-thumb,
+.enhanced-panels::-webkit-scrollbar-thumb,
+.filter-container::-webkit-scrollbar-thumb,
+.explanation-content::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+
+.ui-controls::-webkit-scrollbar-thumb:hover,
+.enhanced-panels::-webkit-scrollbar-thumb:hover,
+.filter-container::-webkit-scrollbar-thumb:hover,
+.explanation-content::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* ===================================================================
+   RESPONSIVE DESIGN
+   =================================================================== */
+@media (max-width: 1200px) {
+  .enhanced-panels {
+    right: 10px;
+    width: 300px;
   }
   
   .ui-controls {
-    width: 280px;
+    left: 10px;
   }
   
   .search-container,
   .filter-container {
-    width: 100%;
+    width: 280px;
+  }
+  
+  .explanation-panel {
+    width: 350px;
+    left: 10px;
+    bottom: 10px;
   }
 }
 
 @media (max-width: 768px) {
-  .ui-controls {
-    position: static;
-    width: 100%;
-    max-width: 100%;
-    padding: 15px;
-    background: rgba(42, 42, 46, 0.95);
-    backdrop-filter: blur(10px);
-    flex-direction: row;
-    gap: 15px;
-    overflow-x: auto;
-    max-height: none;
-  }
-  
-  .search-container,
-  .filter-container {
-    width: 280px;
-    flex-shrink: 0;
-  }
-  
-  .explanation-panel {
-    width: 100%;
-    max-width: none;
-    right: 0;
-    left: 0;
+  .enhanced-panels {
+    position: relative;
     top: auto;
-    bottom: 0;
-    height: 60vh;
-    border-left: none;
-    border-top: 3px solid #00d1ff;
+    right: auto;
+    width: 100%;
+    max-height: none;
+    padding: 10px;
+    background-color: rgba(42, 42, 46, 0.95);
+    backdrop-filter: blur(10px);
   }
   
-  .graph-container {
-    padding-top: 120px;
-  }
-}
-
-@media (max-width: 480px) {
   .ui-controls {
-    flex-direction: column;
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-height: none;
     padding: 10px;
+    background-color: rgba(42, 42, 46, 0.95);
+    backdrop-filter: blur(10px);
   }
   
   .search-container,
@@ -555,133 +502,58 @@
     width: 100%;
   }
   
-  .filter-container {
-    padding: 15px;
-  }
-  
   .explanation-panel {
-    height: 70vh;
-    padding: 20px 15px;
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+    max-height: 400px;
+    margin: 10px;
   }
   
-  .explanation-panel h2 {
-    font-size: 24px;
-    margin: 20px 0 15px 0;
-  }
-  
-  .explanation-controls {
-    margin: 20px 0;
-  }
-  
-  .explanation-controls button {
-    margin-right: 8px;
-    margin-bottom: 8px;
-    padding: 8px 12px;
-    font-size: 12px;
+  .panel-controls {
+    justify-content: center;
   }
   
   .graph-container {
-    padding-top: 140px;
+    flex-direction: column;
   }
 }
 
 /* ===================================================================
-   ANIMACIONES Y TRANSICIONES ADICIONALES
+   ANIMACIONES Y TRANSICIONES
    =================================================================== */
 @keyframes fadeIn {
-  from { 
-    opacity: 0; 
-    transform: translateY(20px); 
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  to { 
-    opacity: 1; 
-    transform: translateY(0); 
-  }
-}
-
-.explanation-panel {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.search-results {
-  animation: fadeIn 0.2s ease-out;
-}
-
-.loading-overlay {
-  animation: fadeIn 0.3s ease-out;
-}
-
-/* ===================================================================
-   SCROLLBARS PERSONALIZADOS
-   =================================================================== */
-.ui-controls::-webkit-scrollbar,
-.explanation-panel::-webkit-scrollbar,
-.search-results::-webkit-scrollbar,
-.explanation-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.ui-controls::-webkit-scrollbar-track,
-.explanation-panel::-webkit-scrollbar-track,
-.search-results::-webkit-scrollbar-track,
-.explanation-content::-webkit-scrollbar-track {
-  background: #1a1a1a;
-  border-radius: 4px;
-}
-
-.ui-controls::-webkit-scrollbar-thumb,
-.explanation-panel::-webkit-scrollbar-thumb,
-.search-results::-webkit-scrollbar-thumb,
-.explanation-content::-webkit-scrollbar-thumb {
-  background: #555;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.ui-controls::-webkit-scrollbar-thumb:hover,
-.explanation-panel::-webkit-scrollbar-thumb:hover,
-.search-results::-webkit-scrollbar-thumb:hover,
-.explanation-content::-webkit-scrollbar-thumb:hover {
-  background: #00d1ff;
-}
-
-/* ===================================================================
-   ESTADOS DE FOCUS Y ACCESIBILIDAD
-   =================================================================== */
-.filter-item input:focus,
-.explanation-controls button:focus,
-.normalization-btn:focus,
-.regenerate-btn:focus,
-.close-btn:focus {
-  outline: 2px solid #00d1ff;
-  outline-offset: 2px;
-}
-
-/* Modo de alto contraste */
-@media (prefers-contrast: high) {
-  .graph-container {
-    background-color: #000;
-  }
-  
-  .search-container input,
-  .filter-container,
-  .explanation-panel {
-    border: 2px solid #fff;
-  }
-  
-  .explanation-content {
-    background-color: #000;
-    border: 2px solid #fff;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Reducción de movimiento */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+.enhanced-panels > *,
+.ui-controls > * {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Enlaces destacados */
+.graph-container .highlighted-link {
+  stroke: #00d1ff !important;
+  stroke-width: 3 !important;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.8;
   }
 }

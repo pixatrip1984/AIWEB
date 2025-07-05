@@ -1,17 +1,14 @@
-// socratic-cortex-frontend/src/components/KnowledgeGraph.jsx
-// VERSIÓN ACTUALIZADA CON PANELES DE FASE 1.2
+// src/components/KnowledgeGraph.jsx (VERSIÓN FINAL COMPLETA CON NORMALIZACIÓN)
 
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
 import NormalizationPanel from './NormalizationPanel';
-import AdvancedSearchPanel from './AdvancedSearchPanel';
-import KnowledgeIngestPanel from './KnowledgeIngestPanel';
 import './KnowledgeGraph.css';
 
 const KnowledgeGraph = () => {
-  // --- ESTADOS EXISTENTES ---
+  // --- ESTADOS ---
   const [fullGraphData, setFullGraphData] = useState({ nodes: [], links: [] });
   const [selectedNode, setSelectedNode] = useState(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
@@ -25,13 +22,9 @@ const KnowledgeGraph = () => {
   const [isLoadingGraph, setIsLoadingGraph] = useState(true);
   const fgRef = useRef();
 
-  // --- NUEVOS ESTADOS PARA FASE 1.2 ---
-  const [showDomainsPanel, setShowDomainsPanel] = useState(true);
-  const [showAdvancedSearch, setShowAdvancedSearch] = useState(true);
-  const [showIngestPanel, setShowIngestPanel] = useState(true);
-  const [highlightedConnections, setHighlightedConnections] = useState([]);
+  // --- FUNCIONES DE CARGA DE DATOS ---
 
-  // --- FUNCIONES EXISTENTES ---
+  // Función para cargar datos del grafo
   const loadGraphData = useCallback(async () => {
     setIsLoadingGraph(true);
     try {
@@ -41,14 +34,17 @@ const KnowledgeGraph = () => {
       
       setFullGraphData(data);
       
+      // Extraer dominios únicos y ordenarlos
       const uniqueDomains = [...new Set(data.nodes.map(node => node.domain || 'Sin Dominio'))].sort();
       setDomains(uniqueDomains);
       setActiveFilters(new Set(uniqueDomains));
       
       console.log(`✅ Grafo cargado: ${data.nodes.length} nodos, ${data.links.length} enlaces`);
+      console.log(`📚 Dominios encontrados: ${uniqueDomains.join(', ')}`);
       
     } catch (error) {
       console.error('❌ Error al obtener el grafo:', error);
+      // En caso de error, inicializar con datos vacíos
       setFullGraphData({ nodes: [], links: [] });
       setDomains([]);
       setActiveFilters(new Set());
@@ -57,51 +53,48 @@ const KnowledgeGraph = () => {
     }
   }, []);
 
+  // --- EFECTOS ---
+
+  // Carga inicial de datos
   useEffect(() => {
     loadGraphData();
   }, [loadGraphData]);
 
+  // Filtrado y enriquecimiento del grafo (usando useMemo para eficiencia)
   const processedGraphData = useMemo(() => {
     if (fullGraphData.nodes.length === 0) {
       return { nodes: [], links: [] };
     }
 
+    // Filtrar nodos según dominios activos
     const filteredNodes = fullGraphData.nodes.filter(node => 
       activeFilters.has(node.domain || 'Sin Dominio')
     );
     
     const filteredNodeIds = new Set(filteredNodes.map(n => n.id));
     
-    let filteredLinks = fullGraphData.links.filter(link => 
+    // Filtrar enlaces para que solo conecten nodos visibles
+    const filteredLinks = fullGraphData.links.filter(link => 
       filteredNodeIds.has(link.source) && filteredNodeIds.has(link.target)
     );
 
-    // Destacar conexiones de búsqueda avanzada
-    if (highlightedConnections.length > 0) {
-      const highlightedIds = new Set(
-        highlightedConnections.map(conn => `${conn.source.id}-${conn.target.id}`)
-      );
-      
-      filteredLinks = filteredLinks.map(link => ({
-        ...link,
-        highlighted: highlightedIds.has(`${link.source}-${link.target}`)
-      }));
-    }
-
+    // Calcular importancia de cada nodo (número de conexiones)
     const nodeImportance = {};
     filteredLinks.forEach(link => {
       nodeImportance[link.source] = (nodeImportance[link.source] || 0) + 1;
       nodeImportance[link.target] = (nodeImportance[link.target] || 0) + 1;
     });
 
+    // Enriquecer nodos con tamaño basado en importancia
     const sizedNodes = filteredNodes.map(node => ({
       ...node,
       val: Math.min(4 + (nodeImportance[node.id] || 0) * 2, 15)
     }));
 
     return { nodes: sizedNodes, links: filteredLinks };
-  }, [fullGraphData, activeFilters, highlightedConnections]);
+  }, [fullGraphData, activeFilters]);
 
+  // Búsqueda en tiempo real
   useEffect(() => {
     if (searchTerm.trim() === '') {
       setSearchResults([]);
@@ -111,21 +104,25 @@ const KnowledgeGraph = () => {
     const results = fullGraphData.nodes.filter(node =>
       node.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setSearchResults(results.slice(0, 10));
+    setSearchResults(results.slice(0, 10)); // Limitar a 10 resultados
   }, [searchTerm, fullGraphData.nodes]);
 
-  // --- MANEJADORES EXISTENTES ---
+  // --- MANEJADORES DE EVENTOS ---
+  
+  // Obtener explicación de un nodo
   const getExplanation = async (nodeId, level, forceRegenerate = false) => {
     setCurrentLevel(level);
     
+    // Si ya tenemos la explicación en caché y no forzamos regeneración
     if (!forceRegenerate && explanationsCache[nodeId]?.[level]) {
       return;
     }
     
     setIsLoadingExplanation(true);
     try {
+      console.log(`🤖 Generando explicación ${level} para: ${nodeId}`);
       const response = await axios.post(
-        `http://127.0.0.1:5000/api/graph/explain/${nodeId}`,
+        `http://127.0.0.1:5000/api/graph/explain/${nodeId}`, // RUTA CORREGIDA
         { level }
       );
       
@@ -137,6 +134,7 @@ const KnowledgeGraph = () => {
         }
       }));
       
+      console.log('✅ Explicación generada exitosamente');
     } catch (error) {
       console.error('❌ Error al obtener la explicación:', error);
     } finally {
@@ -144,15 +142,22 @@ const KnowledgeGraph = () => {
     }
   };
   
+  // Manejar click en nodo
   const handleNodeClick = useCallback(node => {
     if (node && fgRef.current) {
+      console.log(`🎯 Nodo seleccionado: ${node.label} [${node.id}]`);
+      
+      // Centrar y hacer zoom al nodo
       fgRef.current.centerAt(node.x, node.y, 1000);
       fgRef.current.zoom(2.5, 1000);
+      
+      // Actualizar estado
       setSelectedNode(node);
       setCurrentLevel(null);
     }
   }, []);
   
+  // Centrar en un nodo específico desde la búsqueda
   const centerOnNode = (nodeId) => {
     const node = fullGraphData.nodes.find(n => n.id === nodeId);
     if (node) {
@@ -162,6 +167,7 @@ const KnowledgeGraph = () => {
     }
   };
   
+  // Manejar cambio de filtros
   const handleFilterChange = (domain) => {
     setActiveFilters(prev => {
       const newFilters = new Set(prev);
@@ -170,68 +176,30 @@ const KnowledgeGraph = () => {
       } else {
         newFilters.add(domain);
       }
+      console.log(`🔍 Filtro ${domain}: ${newFilters.has(domain) ? 'activado' : 'desactivado'}`);
       return newFilters;
     });
   };
 
-  // --- NUEVOS MANEJADORES PARA FASE 1.2 ---
-  const handleConnectionsFound = (connections) => {
-    setHighlightedConnections(connections);
-    console.log(`🔍 Destacando ${connections.length} conexiones encontradas`);
-  };
-
-  const handleKnowledgeAdded = (result) => {
-    console.log('📝 Conocimiento agregado, recargando grafo...');
-    loadGraphData(); // Recargar el grafo
-    
-    // Opcionalmente centrar en el nuevo nodo
-    if (result.graph && result.graph.primaryNode) {
-      setTimeout(() => {
-        centerOnNode(result.graph.primaryNode.id);
-      }, 1000);
-    }
-  };
-
-  const handleNormalizationComplete = () => {
-    loadGraphData();
+  // Manejar cierre del panel de normalización
+  const handleNormalizationPanelClose = () => {
     setShowNormalizationPanel(false);
   };
 
-  // Toggle panels
-  const toggleDomainsPanel = () => setShowDomainsPanel(!showDomainsPanel);
-  const toggleAdvancedSearch = () => setShowAdvancedSearch(!showAdvancedSearch);
-  const toggleIngestPanel = () => setShowIngestPanel(!showIngestPanel);
-
+  // Manejar cuando se completa la normalización
+  const handleNormalizationComplete = () => {
+    console.log('🔄 Normalización completada, recargando grafo...');
+    loadGraphData(); // Recargar datos del grafo
+    setShowNormalizationPanel(false);
+  };
+  
+  // --- RENDERIZADO DEL COMPONENTE ---
+  
   return (
     <div className="graph-container">
       {/* Controles de UI en la parte superior izquierda */}
       <div className="ui-controls">
-        {/* Controles de paneles */}
-        <div className="panel-controls">
-          <button 
-            className={`panel-toggle ${showDomainsPanel ? 'active' : ''}`}
-            onClick={toggleDomainsPanel}
-            title="Mostrar/Ocultar panel de dominios"
-          >
-            📚 Dominios
-          </button>
-          <button 
-            className={`panel-toggle ${showAdvancedSearch ? 'active' : ''}`}
-            onClick={toggleAdvancedSearch}
-            title="Mostrar/Ocultar búsqueda avanzada"
-          >
-            🔍 Avanzada
-          </button>
-          <button 
-            className={`panel-toggle ${showIngestPanel ? 'active' : ''}`}
-            onClick={toggleIngestPanel}
-            title="Mostrar/Ocultar panel de ingesta"
-          >
-            📝 Agregar
-          </button>
-        </div>
-
-        {/* Barra de búsqueda básica */}
+        {/* Barra de búsqueda */}
         <div className="search-container">
           <input 
             type="text" 
@@ -252,50 +220,32 @@ const KnowledgeGraph = () => {
           )}
         </div>
 
-        {/* Panel de filtros por dominios */}
-        {showDomainsPanel && (
-          <div className="filter-container">
-            <h4>Dominios ({domains.length})</h4>
-            {domains.map(domain => (
-              <div key={domain} className="filter-item">
-                <input 
-                  type="checkbox" 
-                  id={`domain-${domain}`}
-                  checked={activeFilters.has(domain)} 
-                  onChange={() => handleFilterChange(domain)}
-                  disabled={isLoadingGraph}
-                />
-                <label htmlFor={`domain-${domain}`}>{domain}</label>
-              </div>
-            ))}
-            
-            <button 
-              className="normalization-btn"
-              onClick={() => setShowNormalizationPanel(true)}
-              disabled={isLoadingGraph}
-              title="Abrir panel de normalización del conocimiento"
-            >
-              🧠 Normalizar Grafo
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Paneles de Fase 1.2 en la parte derecha */}
-      <div className="enhanced-panels">
-        {/* Panel de Búsqueda Avanzada */}
-        <AdvancedSearchPanel 
-          isVisible={showAdvancedSearch}
-          onConnectionsFound={handleConnectionsFound}
-          onToggle={toggleAdvancedSearch}
-        />
-
-        {/* Panel de Ingesta de Conocimiento */}
-        <KnowledgeIngestPanel 
-          isVisible={showIngestPanel}
-          onKnowledgeAdded={handleKnowledgeAdded}
-          onToggle={toggleIngestPanel}
-        />
+        {/* Panel de filtros */}
+        <div className="filter-container">
+          <h4>Dominios ({domains.length})</h4>
+          {domains.map(domain => (
+            <div key={domain} className="filter-item">
+              <input 
+                type="checkbox" 
+                id={`domain-${domain}`}
+                checked={activeFilters.has(domain)} 
+                onChange={() => handleFilterChange(domain)}
+                disabled={isLoadingGraph}
+              />
+              <label htmlFor={`domain-${domain}`}>{domain}</label>
+            </div>
+          ))}
+          
+          {/* Botón de normalización */}
+          <button 
+            className="normalization-btn"
+            onClick={() => setShowNormalizationPanel(true)}
+            disabled={isLoadingGraph}
+            title="Abrir panel de normalización del conocimiento"
+          >
+            🧠 Normalizar Grafo
+          </button>
+        </div>
       </div>
 
       {/* Indicador de carga */}
@@ -317,16 +267,11 @@ const KnowledgeGraph = () => {
         nodeAutoColorBy="domain"
         onNodeClick={handleNodeClick}
         
+        // Configuración visual avanzada
         nodeVal="val"
         
-        // Enlaces con destacado mejorado
+        // Colorear enlaces según tipo de relación
         linkColor={link => {
-          // Conexiones destacadas de búsqueda avanzada
-          if (link.highlighted) {
-            return 'rgba(0, 209, 255, 0.9)';
-          }
-          
-          // Colores por tipo de relación
           const type = link.type?.toUpperCase();
           if (type?.includes('CRITICA')) return 'rgba(255, 100, 100, 0.8)';
           if (type?.includes('INFLUENCIA')) return 'rgba(100, 255, 100, 0.8)';
@@ -334,9 +279,10 @@ const KnowledgeGraph = () => {
           return 'rgba(255, 255, 255, 0.3)';
         }}
         
-        linkWidth={link => link.highlighted ? 3 : 1}
+        linkWidth={1}
         linkLabel="label"
         
+        // Flechas direccionales
         linkDirectionalArrowLength={3.5}
         linkDirectionalArrowRelPos={1}
         linkCurvature={0.25}
@@ -427,7 +373,7 @@ const KnowledgeGraph = () => {
       {showNormalizationPanel && (
         <NormalizationPanel 
           isOpen={showNormalizationPanel}
-          onClose={() => setShowNormalizationPanel(false)}
+          onClose={handleNormalizationPanelClose}
           onNormalizationComplete={handleNormalizationComplete}
         />
       )}
